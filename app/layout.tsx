@@ -16,7 +16,6 @@ export default function RootLayout({
    <ClerkProvider>
     <html lang="en" data-theme="dark">
       <body
-        className= {inter.className}
       >
         {children}
       </body>

@@ -2,8 +2,8 @@ import { auth, clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server';
 
 const isPublicRoute = createRouteMatcher([
-   "/signin",
-   "/signup",
+   "/sign-in(.*)",
+   "/sign-up(.*)",
    "/",
    "/home"
 ])
@@ -13,26 +13,31 @@ const isPublicApiRoute = createRouteMatcher([
 ])
 
 
-export default clerkMiddleware((auth,req)=>{
-  const {userId} = auth();
+export default clerkMiddleware(async (authData, req) => {
+  const { userId } = await authData();
   const currentUrl = new URL(req.url)
   const isHomePage = currentUrl.pathname === "/home"
   const isApiRequest = currentUrl.pathname.startsWith("/api")
 
-  if(userId && isPublicRoute(req) && !isHomePage){
+  // Redirect authenticated users from public routes to home
+  if (userId && isPublicRoute(req) && !isHomePage) {
     return NextResponse.redirect(new URL("/home", req.url))
   }
 
-  if(!userId){
-      if(!isPublicApiRoute(req) && !isPublicApiRoute(req)){
-        return NextResponse.redirect(new URL("/signin", req.url))
-      }
+  // Handle unauthenticated users
+  if (!userId) {
+    // Redirect to sign-in if accessing protected routes
+    if (!isPublicRoute(req) && !isPublicApiRoute(req)) {
+      return NextResponse.redirect(new URL("/sign-in", req.url))
+    }
 
-      if(isApiRequest && isPublicApiRoute(req)){
-         return NextResponse.redirect(new URL("/signin", req.url))
-      }
+    // Redirect to sign-in if accessing protected API routes
+    if (isApiRequest && !isPublicApiRoute(req)) {
+      return NextResponse.redirect(new URL("/sign-in", req.url))
+    }
   }
 
+  return NextResponse.next()
 })
 
 export const config = {
