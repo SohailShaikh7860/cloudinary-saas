@@ -1,6 +1,6 @@
 import React,{ useState, useEffect, useCallback} from 'react'
 import { getCldImageUrl, getCldVideoUrl } from 'next-cloudinary'
-import {Download, Clock, FileDown, FileUp} from 'lucide-react'
+import {Download, Clock, FileDown, FileUp, Trash2} from 'lucide-react'
 import dayjs from 'dayjs'
 import realtivetime from 'dayjs/plugin/relativeTime'
 import {filesize} from 'filesize'
@@ -12,10 +12,12 @@ interface VideoCardProps {
     publicId: string
     video: Video;
     onDownload: (url: string, title: string) => void;
+    onDelete: (id: string) => void;
+    isDeleting?: boolean;
 }
 
 
-const videoCard : React.FC<VideoCardProps> = ({video, onDownload})  => {
+const videoCard : React.FC<VideoCardProps> = ({video, onDownload, onDelete, isDeleting = false})  => {
    
     const [isHovered, setIsHovered] = useState(false);
     const [previewError, setPreviewError] = useState(false);
@@ -74,7 +76,7 @@ const videoCard : React.FC<VideoCardProps> = ({video, onDownload})  => {
 
   return (
       <div
-          className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300"
+          className={`card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -135,14 +137,27 @@ const videoCard : React.FC<VideoCardProps> = ({video, onDownload})  => {
                 Compression:{" "}
                 <span className="text-accent">{compressionPercentage}%</span>
               </div>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() =>
-                  onDownload(getFullVideoUrl(video.publicId), video.title)
-                }
-              >
-                <Download size={16} />
-              </button>
+              <div className="flex gap-2">
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() =>
+                    onDownload(getFullVideoUrl(video.publicId), video.title)
+                  }
+                >
+                  <Download size={16} />
+                </button>
+                <button
+                  className="btn btn-error btn-sm"
+                  onClick={() => onDelete(video.id)}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <span className="loading loading-spinner loading-xs"></span>
+                  ) : (
+                    <Trash2 size={16} />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

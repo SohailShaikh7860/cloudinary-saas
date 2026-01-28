@@ -8,6 +8,7 @@ const HomePage = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchVideos = useCallback(async () => {
       try {
@@ -30,17 +31,35 @@ const HomePage = () => {
   },[fetchVideos])
 
    const handleDownload = useCallback((url: string, title: string) => {
-        () => {
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", `${title}.mp4`);
-            link.setAttribute("target", "_blank");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${title}.mp4`);
+        link.setAttribute("target", "_blank");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }, [])
 
+    const handleDelete = useCallback(async (id: string) => {
+        if (!confirm('Are you sure you want to delete this video?')) {
+            return;
         }
 
+        setDeletingId(id); // Set loading state
+
+        try {
+            const response = await axios.delete(`/api/video-delete?id=${id}`);
+            
+            if (response.data.success) {
+                setVideos(prevVideos => prevVideos.filter(video => video.id !== id));
+                alert('Video deleted successfully!');
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('Failed to delete video. Please try again.');
+        } finally {
+            setDeletingId(null);
+        }
     }, [])
 
     if(loading){
@@ -62,6 +81,8 @@ const HomePage = () => {
                         publicId={video.publicId}
                         video={video}
                         onDownload={handleDownload}
+                        onDelete={handleDelete}
+                        isDeleting={deletingId === video.id}
                     />
                 ))
               }
