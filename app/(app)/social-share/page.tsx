@@ -7,9 +7,9 @@ import { ShowToast } from '@/components/toast';
 const socialFrames = {
    "Instagram Square (1:1)": { width: 1080, height: 1080, aspectRatio: "1:1" },
    "Instagram Portrait (4:5)": { width: 1080, height: 1350, aspectRatio: "4:5" },
-   "Facebook Post (1.91:1)": { width: 1200, height: 628, aspectRatio: "1.91:1" },
+   "Facebook Post (1.91:1)": { width: 1200, height: 628, aspectRatio: "600:314" },
    "Twitter Post (16:9)": { width: 1024, height: 512, aspectRatio: "16:9" },
-   "twittwer Header (3:1)": { width: 1500, height: 500, aspectRatio: "3:1" }
+   "Twitter Header (3:1)": { width: 1500, height: 500, aspectRatio: "3:1" }
 };
 
 type socialFormat = keyof typeof socialFrames;
@@ -49,10 +49,13 @@ export default function SocialShare() {
         setUploadedImage(data.publicId);
         ShowToast("Image uploaded successfully", "success");
       }else{
-        ShowToast("Upload failed", "error");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || 'Failed to upload image';
+        ShowToast(errorMessage, "error");
       }
     } catch (error) {
-       ShowToast("Error uploading image", "error");
+       const errorMessage = error instanceof Error ? error.message : 'Error uploading image';
+       ShowToast(errorMessage, "error");
     }finally{
       setIsUploading(false);
     }
@@ -68,12 +71,15 @@ export default function SocialShare() {
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.download = 'image.png';
+          link.download = `${selectedFormat.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
-          document.body.removeChild(link);
+          ShowToast('Image downloaded successfully', 'success');
+       })
+       .catch(() => {
+          ShowToast('Failed to download image', 'error');
        })
   }
 

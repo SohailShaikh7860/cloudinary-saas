@@ -23,7 +23,9 @@ const HomePage = () => {
           throw new Error("Unexpected response format");
        }
       } catch (error) {
-         setError(error instanceof Error ? error.message : String(error));
+         const errorMessage = error instanceof Error ? error.message : 'Failed to load videos';
+         setError(errorMessage);
+         ShowToast(errorMessage, 'error');
       } finally {
          setLoading(false);
       }
@@ -70,12 +72,12 @@ const HomePage = () => {
                         
                         }
                     } catch (err) {
-                        console.error('❌ Subtitle download error:', err);
+                        ShowToast('Failed to download subtitles', 'error');
                     }
                 }, 500);
             }
         } catch (error) {
-            console.error('❌ Error:', error);
+            ShowToast('Failed to open video', 'error');
         }
     }, [])
 
@@ -95,10 +97,14 @@ const HomePage = () => {
             if (response.data.success) {
                 setVideos(prevVideos => prevVideos.filter(video => video.id !== videoToDelete));
                 ShowToast('Video deleted successfully!', 'success');
+            } else {
+                ShowToast('Failed to delete video. Please try again.', 'error');
             }
         } catch (error) {
-            console.error('Delete error:', error);
-            ShowToast('Failed to delete video. Please try again.', 'error');
+            const errorMessage = axios.isAxiosError(error) && error.response?.data?.error 
+                ? error.response.data.error 
+                : 'Failed to delete video. Please try again.';
+            ShowToast(errorMessage, 'error');
         } finally {
             setDeletingId(null);
         }
@@ -132,17 +138,26 @@ const HomePage = () => {
                 );
 
                 ShowToast('Subtitles generated successfully!', 'success');
+            } else {
+                ShowToast('Failed to generate subtitles. Please try again.', 'error');
             }
         } catch (error) {
-            console.error('Subtitle generation error:', error);
-            ShowToast('Failed to generate subtitles. Please try again.', 'error');
+            const errorMessage = axios.isAxiosError(error) && error.response?.data?.error 
+                ? error.response.data.error 
+                : 'Failed to generate subtitles. Please try again.';
+            ShowToast(errorMessage, 'error');
         } finally {
             setGeneratingSubtitlesId(null);
         }
     }, [videoToGenerateSubtitles])
 
     if(loading){
-        return <div>Loading...</div>
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen">
+                <span className="loading loading-spinner loading-lg text-primary"></span>
+                <p className="mt-4 text-lg font-semibold">Loading videos...</p>
+            </div>
+        )
     }
   return (
      <>

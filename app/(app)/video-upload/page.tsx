@@ -47,8 +47,11 @@ const handleSubmit = async (event: React.FormEvent)=>{
               ShowToast("Video upload failed", "error");
           }
 
-        } catch (error:any) {
-          throw new Error(error.message);
+        } catch (error) {
+          const errorMessage = axios.isAxiosError(error) && error.response?.data?.error 
+              ? error.response.data.error 
+              : 'Failed to upload video. Please try again.';
+          ShowToast(errorMessage, "error");
         }finally{
           setIsUploading(false);
         }

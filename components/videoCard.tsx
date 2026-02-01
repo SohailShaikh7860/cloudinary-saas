@@ -165,6 +165,7 @@ const videoCard : React.FC<VideoCardProps> = ({video, onDownload, onDelete, onGe
                   <Download size={16} />
                   {video.hasSubtitles && <span className="text-xs ml-1">+Sub</span>}
                 </button>
+                {!video.hasSubtitles && (
                 <button
                   className={`btn btn-sm ${video.hasSubtitles ? 'btn-success' : 'btn-secondary'}`}
                   onClick={() => onGenerateSubtitles(video.id, video.publicId)}
@@ -177,6 +178,7 @@ const videoCard : React.FC<VideoCardProps> = ({video, onDownload, onDelete, onGe
                     <Subtitles size={16} />
                   )}
                 </button>
+                )}
                 <button
                   className="btn btn-error btn-sm"
                   onClick={() => onDelete(video.id)}
